@@ -1,13 +1,20 @@
 """
 Multi-Agent Research Team - Agent Definitions
-4 specialized agents that collaborate via CrewAI.
+4 specialized agents that collaborate via CrewAI using Claude.
 """
 
 from crewai import Agent, LLM
 from crewai_tools import SerperDevTool, ScrapeWebsiteTool
+import os
 
 search_tool = SerperDevTool()
 scrape_tool = ScrapeWebsiteTool()
+
+# Use Claude as the LLM for all agents
+claude_llm = LLM(
+    model="anthropic/claude-sonnet-4-20250514",
+    api_key=os.getenv("ANTHROPIC_API_KEY"),
+)
 
 
 def create_researcher():
@@ -20,6 +27,7 @@ def create_researcher():
             "and distinguishing credible data from noise. You focus on recent developments."
         ),
         tools=[search_tool, scrape_tool],
+        llm=claude_llm,
         verbose=True,
         allow_delegation=False,
         max_iter=5,
@@ -36,6 +44,7 @@ def create_analyst():
             "by importance. You always think about why this matters for the audience."
         ),
         tools=[],
+        llm=claude_llm,
         verbose=True,
         allow_delegation=False,
         max_iter=3,
@@ -52,6 +61,7 @@ def create_writer():
             "You write with authority, use hooks that stop the scroll, and include specific data points."
         ),
         tools=[],
+        llm=claude_llm,
         verbose=True,
         allow_delegation=False,
         max_iter=3,
@@ -68,6 +78,7 @@ def create_editor():
             "You verify claims are supported by research and optimize for readability."
         ),
         tools=[],
+        llm=claude_llm,
         verbose=True,
         allow_delegation=False,
         max_iter=2,
