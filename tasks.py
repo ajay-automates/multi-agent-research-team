@@ -1,1 +1,106 @@
-"""\nMulti-Agent Research Team \u2014 Task Definitions\nSequential tasks that define the research-to-content pipeline.\nEach task's output feeds into the next agent's input.\n"""\n\nfrom crewai import Task\n\n\ndef create_research_task(agent, topic: str):\n    """Task 1: Research \u2014 gather comprehensive information on the topic."""\n    return Task(\n        description=f"""Research the following topic thoroughly: {topic}\n\n        Your research must include:\n        1. Search for the latest news, developments, and announcements (last 7 days preferred)\n        2. Find specific data points, statistics, and facts with sources\n        3. Identify key players, companies, or people involved\n        4. Look for expert opinions and contrarian viewpoints\n        5. Find at least 3-5 credible sources\n\n        Focus on what's NEW and what's CHANGING \u2014 not general background.\n        If the topic is about AI/tech, prioritize recent product launches, research papers, and industry shifts.""",\n        expected_output="""A comprehensive research brief containing:\n        - Executive summary (2-3 sentences)\n        - Key findings with specific data points and sources\n        - Recent developments (with dates)\n        - Expert opinions and quotes (attributed)\n        - Contrarian or surprising perspectives\n        - List of all sources used""",\n        agent=agent,\n    )\n\n\ndef create_analysis_task(agent, topic: str):\n    """Task 2: Analyze \u2014 extract insights and find unique angles."""\n    return Task(\n        description=f"""Analyze the research findings about: {topic}\n\n        Your analysis must:\n        1. Identify the 3 most important insights from the research\n        2. Find patterns or trends that connect different findings\n        3. Determine what this means for the average person / professional\n        4. Identify the unique angle \u2014 what perspective is missing from mainstream coverage?\n        5. Rate the significance (1-10) and explain why\n        6. Predict what might happen next based on current trends\n\n        Think like a strategist: what's the 'so what?' for someone in tech/AI?""",\n        expected_output="""A structured analysis containing:\n        - 3 key insights (ranked by importance) with supporting evidence\n        - Trend analysis: what pattern is emerging\n        - Unique angle: the perspective most people are missing\n        - Impact assessment: who this affects and how\n        - Prediction: what happens next (with confidence level)\n        - Significance score (1-10) with justification""",\n        agent=agent,\n    )\n\n\ndef create_writing_task(agent, topic: str, platforms: str = "linkedin,twitter,newsletter"):\n    """Task 3: Write \u2014 create platform-specific content."""\n    platform_list = [p.strip().lower() for p in platforms.split(",")]\n\n    platform_instructions = []\n    if "linkedin" in platform_list:\n        platform_instructions.append("""\n        **LinkedIn Post:**\n        - Start with a strong hook (first line must stop the scroll)\n        - 150-300 words\n        - Use line breaks for readability\n        - Include specific numbers/data\n        - End with a question or call-to-action\n        - Add 3-5 relevant hashtags""")\n\n    if "twitter" in platform_list:\n        platform_instructions.append("""\n        **Twitter/X Thread:**\n        - Tweet 1: Hook with the most surprising finding (< 280 chars)\n        - Tweets 2-5: Key insights with data points (each < 280 chars)\n        - Final tweet: Takeaway + call to engage\n        - Use numbers to label thread (1/, 2/, etc.)""")\n\n    if "newsletter" in platform_list:\n        platform_instructions.append("""\n        **Newsletter Section (Substack):**\n        - Compelling headline\n        - 300-500 word deep-dive\n        - Include context for why this matters NOW\n        - Specific examples and data\n        - Clear takeaway at the end\n        - Conversational but authoritative tone""")\n\n    instructions = "\\n".join(platform_instructions)\n\n    return Task(\n        description=f"""Create engaging content about: {topic}\n\n        Using the research and analysis provided, write content for these platforms:\n        {instructions}\n\n        CRITICAL RULES:\n        - Every claim must be backed by the research (no hallucination)\n        - Use specific numbers and data points (not vague language)\n        - Write in first person where appropriate (\"Here's what I found...\")\n        - Make it feel like original insight, not a summary of articles\n        - Optimize for engagement (hooks, questions, contrarian takes)""",\n        expected_output=f"""Platform-ready content for: {', '.join(platform_list)}\n        Each piece should be complete, formatted, and ready to post.""",\n        agent=agent,\n    )\n\n\ndef create_editing_task(agent, topic: str):\n    """Task 4: Edit \u2014 review, fact-check, and polish."""\n    return Task(\n        description=f"""Review and edit all content created about: {topic}\n\n        Your editorial review must:\n        1. FACT CHECK: Verify all claims against the original research\n        2. ACCURACY: Flag any unsupported claims or exaggerations\n        3. ENGAGEMENT: Strengthen hooks, improve readability, add punch\n        4. PLATFORM FIT: Ensure each piece follows platform best practices\n        5. CONSISTENCY: Ensure the same message comes through across all platforms\n        6. POLISH: Fix grammar, improve word choice, tighten sentences\n\n        Return the FINAL edited versions of all content pieces, clearly labeled.""",\n        expected_output="""Final edited content for all platforms with:\n        - Each piece clearly labeled (LinkedIn / Twitter / Newsletter)\n        - All factual claims verified\n        - Hooks strengthened\n        - Platform-specific formatting applied\n        - Ready to copy-paste and post""",\n        agent=agent,\n    )\n
+"""
+Multi-Agent Research Team - Task Definitions
+Sequential tasks: Research -> Analysis -> Writing -> Editing
+"""
+
+from crewai import Task
+
+
+def create_research_task(agent, topic):
+    return Task(
+        description=(
+            f"Research the following topic thoroughly: {topic}\n\n"
+            "Your research must include:\n"
+            "1. Search for the latest news and developments (last 7 days preferred)\n"
+            "2. Find specific data points, statistics, and facts with sources\n"
+            "3. Identify key players, companies, or people involved\n"
+            "4. Look for expert opinions and contrarian viewpoints\n"
+            "5. Find at least 3-5 credible sources\n\n"
+            "Focus on what is NEW and CHANGING, not general background."
+        ),
+        expected_output=(
+            "A comprehensive research brief with: executive summary, "
+            "key findings with data points and sources, recent developments with dates, "
+            "expert opinions, contrarian perspectives, and list of sources."
+        ),
+        agent=agent,
+    )
+
+
+def create_analysis_task(agent, topic):
+    return Task(
+        description=(
+            f"Analyze the research findings about: {topic}\n\n"
+            "Your analysis must:\n"
+            "1. Identify the 3 most important insights from the research\n"
+            "2. Find patterns or trends connecting different findings\n"
+            "3. Determine what this means for professionals in tech/AI\n"
+            "4. Identify the unique angle missing from mainstream coverage\n"
+            "5. Rate the significance (1-10) and explain why\n"
+            "6. Predict what might happen next"
+        ),
+        expected_output=(
+            "Structured analysis with: 3 key insights ranked by importance, "
+            "trend analysis, unique angle, impact assessment, prediction with "
+            "confidence level, and significance score 1-10."
+        ),
+        agent=agent,
+    )
+
+
+def create_writing_task(agent, topic, platforms="linkedin,twitter,newsletter"):
+    platform_list = [p.strip().lower() for p in platforms.split(",")]
+
+    instructions = ""
+    if "linkedin" in platform_list:
+        instructions += (
+            "\n\nLINKEDIN POST: Start with a strong hook. 150-300 words. "
+            "Use line breaks. Include specific numbers. End with a question. Add 3-5 hashtags."
+        )
+    if "twitter" in platform_list:
+        instructions += (
+            "\n\nTWITTER THREAD: Tweet 1 is the hook under 280 chars. "
+            "Tweets 2-5 are key insights with data. Final tweet is the takeaway. Number each tweet."
+        )
+    if "newsletter" in platform_list:
+        instructions += (
+            "\n\nNEWSLETTER SECTION: Compelling headline. 300-500 word deep-dive. "
+            "Context for why this matters NOW. Specific examples. Clear takeaway."
+        )
+
+    return Task(
+        description=(
+            f"Create engaging content about: {topic}\n\n"
+            "Using the research and analysis provided, write content for these platforms:"
+            f"{instructions}\n\n"
+            "RULES: Every claim must be backed by research. Use specific numbers. "
+            "Write in first person where appropriate. Make it feel like original insight."
+        ),
+        expected_output=(
+            f"Platform-ready content for: {', '.join(platform_list)}. "
+            "Each piece should be complete, formatted, and ready to post."
+        ),
+        agent=agent,
+    )
+
+
+def create_editing_task(agent, topic):
+    return Task(
+        description=(
+            f"Review and edit all content created about: {topic}\n\n"
+            "Your editorial review must:\n"
+            "1. FACT CHECK: Verify all claims against the original research\n"
+            "2. ACCURACY: Flag any unsupported claims or exaggerations\n"
+            "3. ENGAGEMENT: Strengthen hooks, improve readability\n"
+            "4. PLATFORM FIT: Ensure each piece follows platform best practices\n"
+            "5. CONSISTENCY: Same message across all platforms\n"
+            "6. POLISH: Fix grammar, improve word choice, tighten sentences\n\n"
+            "Return the FINAL edited versions of all content pieces, clearly labeled."
+        ),
+        expected_output=(
+            "Final edited content for all platforms, each clearly labeled "
+            "(LinkedIn / Twitter / Newsletter), fact-checked, hooks strengthened, "
+            "platform formatting applied, ready to copy-paste and post."
+        ),
+        agent=agent,
+    )
