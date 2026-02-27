@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Agent Research Team</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+        .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+        header { text-align: center; margin-bottom: 2rem; }
+        header h1 { font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #34d399, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+        header p { color: #888; font-size: 0.95rem; }
+        .input-area { background: #141414; border: 1px solid #222; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .input-area label { display: block; font-size: 0.85rem; color: #888; margin-bottom: 0.4rem; }
+        .input-area input { width: 100%; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 0.85rem 1rem; color: #e0e0e0; font-size: 1rem; outline: none; margin-bottom: 1rem; }
+        .input-area input:focus { border-color: #34d399; }
+        .input-area input::placeholder { color: #555; }
+        .platforms { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .platforms label { display: flex; align-items: center; gap: 0.4rem; background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 0.4rem 0.8rem; font-size: 0.85rem; color: #aaa; cursor: pointer; }
+        .platforms label:has(input:checked) { border-color: #34d399; color: #34d399; }
+        .platforms input { display: none; }
+        .btn { width: 100%; background: linear-gradient(135deg, #059669, #3b82f6); border: none; border-radius: 8px; padding: 0.85rem; color: white; font-size: 1rem; font-weight: 600; cursor: pointer; }
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .quick-topics { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+        .quick-topics button { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 0.35rem 0.7rem; color: #aaa; font-size: 0.78rem; cursor: pointer; }
+        .quick-topics button:hover { border-color: #34d399; color: #34d399; }
+        .pipeline { display: none; margin-bottom: 1.5rem; }
+        .pipeline.active { display: block; }
+        .pipeline-steps { display: flex; gap: 0; }
+        .step { flex: 1; text-align: center; padding: 1rem 0.5rem; background: #141414; border: 1px solid #222; }
+        .step:first-child { border-radius: 12px 0 0 12px; }
+        .step:last-child { border-radius: 0 12px 12px 0; }
+        .step .icon { font-size: 1.5rem; margin-bottom: 0.3rem; }
+        .step .label { font-size: 0.7rem; color: #666; text-transform: uppercase; letter-spacing: 0.05em; }
+        .step .agent { font-size: 0.8rem; color: #888; margin-top: 0.2rem; }
+        .step.active { background: #0a1a14; border-color: #34d399; }
+        .step.active .label { color: #34d399; }
+        .step.done { background: #0a1a14; border-color: #22c55e40; }
+        .step.done .label { color: #4ade80; }
+        .step.done::after { content: '\2713'; position: absolute; top: 0.3rem; right: 0.5rem; color: #4ade80; font-size: 0.8rem; }
+        .result { display: none; }
+        .result.active { display: block; }
+        .tabs { display: flex; gap: 0; }
+        .tab { flex: 1; padding: 0.75rem; text-align: center; background: #141414; border: 1px solid #222; cursor: pointer; font-size: 0.85rem; color: #888; }
+        .tab:first-child { border-radius: 12px 0 0 0; }
+        .tab:last-child { border-radius: 0 12px 0 0; }
+        .tab.active { background: #1a1a1a; color: #34d399; border-bottom-color: #1a1a1a; }
+        .tab-content { background: #1a1a1a; border: 1px solid #222; border-top: none; border-radius: 0 0 12px 12px; padding: 1.5rem; min-height: 300px; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        .content-block { line-height: 1.7; font-size: 0.95rem; color: #ccc; white-space: pre-wrap; word-wrap: break-word; }
+        .content-block h2 { color: #34d399; font-size: 1.1rem; margin: 1rem 0 0.5rem; }
+        .content-block h3 { color: #60a5fa; font-size: 1rem; }
+        .content-block strong { color: #e0e0e0; }
+        .metrics-bar { display: flex; gap: 1.5rem; padding: 1rem 1.5rem; background: #141414; border: 1px solid #222; border-radius: 12px; margin-bottom: 1rem; flex-wrap: wrap; }
+        .metrics-bar .m { font-size: 0.8rem; color: #666; }
+        .metrics-bar .m span { color: #34d399; font-weight: 600; }
+        .error { display: none; background: #1a0a0a; border: 1px solid #4a1515; border-radius: 12px; padding: 1.5rem; color: #f87171; }
+        .error.active { display: block; }
+        footer { text-align: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #1a1a1a; color: #555; font-size: 0.8rem; }
+        footer a { color: #34d399; text-decoration: none; }
+        @media (max-width: 640px) { .pipeline-steps { flex-direction: column; } .step { border-radius: 0 !important; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Multi-Agent Research Team</h1>
+            <p>4 AI agents collaborate via CrewAI to research, analyze, write, and edit content</p>
+        </header>
+        <div class="input-area">
+            <label>Research Topic</label>
+            <input type="text" id="topic" placeholder="e.g. Latest breakthroughs in AI agents — what happened this week?" autofocus>
+            <label>Target Platforms</label>
+            <div class="platforms">
+                <label><input type="checkbox" value="linkedin" checked> LinkedIn</label>
+                <label><input type="checkbox" value="twitter" checked> Twitter/X</label>
+                <label><input type="checkbox" value="newsletter" checked> Newsletter</label>
+            </div>
+            <button class="btn" id="runBtn" onclick="runCrew()">Launch Research Team</button>
+            <div class="quick-topics">
+                <button onclick="setTopic('Latest breakthroughs in AI agents and multi-agent systems this week')">AI Agents News</button>
+                <button onclick="setTopic('OpenAI vs Anthropic vs Google — who is winning the AI race in 2026?')">AI Race</button>
+                <button onclick="setTopic('MCP (Model Context Protocol) — why every AI engineer needs to know this')">MCP Trend</button>
+                <button onclick="setTopic('Is RAG dead? The shift from retrieval to agentic AI architectures')">RAG vs Agents</button>
+                <button onclick="setTopic('Top 5 AI tools that launched this week and why they matter')">New AI Tools</button>
+            </div>
+        </div>
+        <div class="pipeline" id="pipeline">
+            <div class="pipeline-steps">
+                <div class="step" id="step-research"><div class="icon">&#128269;</div><div class="label">Research</div><div class="agent">Researcher</div></div>
+                <div class="step" id="step-analysis"><div class="icon">&#128202;</div><div class="label">Analysis</div><div class="agent">Analyst</div></div>
+                <div class="step" id="step-writing"><div class="icon">&#9997;&#65039;</div><div class="label">Writing</div><div class="agent">Writer</div></div>
+                <div class="step" id="step-editing"><div class="icon">&#9989;</div><div class="label">Editing</div><div class="agent">Editor</div></div>
+            </div>
+        </div>
+        <div class="error" id="error"></div>
+        <div class="result" id="result">
+            <div class="metrics-bar" id="metrics"></div>
+            <div class="tabs" id="tabs"></div>
+            <div class="tab-content" id="tabContent"></div>
+        </div>
+        <footer>
+            <p>Built by <a href="https://github.com/ajay-automates" target="_blank">Ajay Kumar Reddy Nelavetla</a> &middot; CrewAI + Claude &middot; 4 Autonomous Agents</p>
+        </footer>
+    </div>
+    <script>
+        function setTopic(t) { document.getElementById('topic').value = t; }
+        function getSelectedPlatforms() { return [...document.querySelectorAll('.platforms input:checked')].map(c => c.value).join(','); }
+        async function runCrew() {
+            const topic = document.getElementById('topic').value.trim();
+            if (!topic) return;
+            const platforms = getSelectedPlatforms();
+            if (!platforms) { alert('Select at least one platform'); return; }
+            const btn = document.getElementById('runBtn');
+            btn.disabled = true; btn.textContent = 'Agents working...';
+            document.getElementById('pipeline').classList.add('active');
+            document.getElementById('error').classList.remove('active');
+            document.getElementById('result').classList.remove('active');
+            const steps = ['research','analysis','writing','editing'];
+            steps.forEach(s => { document.getElementById('step-'+s).className = 'step'; });
+            let stepIdx = 0;
+            const stepInterval = setInterval(() => {
+                if (stepIdx > 0) { const prev = document.getElementById('step-'+steps[stepIdx-1]); prev.className = 'step done'; }
+                if (stepIdx < steps.length) document.getElementById('step-'+steps[stepIdx]).classList.add('active');
+                stepIdx++;
+                if (stepIdx > steps.length) clearInterval(stepInterval);
+            }, 8000);
+            try {
+                const res = await fetch('/api/research', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({topic, platforms}) });
+                clearInterval(stepInterval);
+                steps.forEach(s => { document.getElementById('step-'+s).className = 'step done'; });
+                const data = await res.json();
+                if (data.error) { document.getElementById('error').textContent = data.error; document.getElementById('error').classList.add('active'); }
+                else { renderResult(data); }
+            } catch(e) { clearInterval(stepInterval); document.getElementById('error').textContent = e.message; document.getElementById('error').classList.add('active'); }
+            btn.disabled = false; btn.textContent = 'Launch Research Team';
+        }
+        function renderResult(data) {
+            const m = data.metrics;
+            document.getElementById('metrics').innerHTML = '<div class="m">Agents: <span>'+m.total_agents+'</span></div><div class="m">Tasks: <span>'+m.total_tasks+'</span></div><div class="m">Process: <span>'+m.process+'</span></div><div class="m">Time: <span>'+m.latency_seconds+'s</span></div>';
+            const tabNames = ['Final Output'].concat(data.task_outputs.map(function(t){return t.task;}));
+            const tabContents = [data.final_output].concat(data.task_outputs.map(function(t){return t.output;}));
+            document.getElementById('tabs').innerHTML = tabNames.map(function(n,i){return '<div class="tab '+(i===0?'active':'')+'" onclick="switchTab('+i+')">'+n+'</div>';}).join('');
+            document.getElementById('tabContent').innerHTML = tabContents.map(function(c,i){return '<div class="tab-panel '+(i===0?'active':'')+'" id="panel-'+i+'"><div class="content-block">'+markdownToHtml(c)+'</div></div>';}).join('');
+            document.getElementById('result').classList.add('active');
+        }
+        function switchTab(idx) {
+            document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',i===idx);});
+            document.querySelectorAll('.tab-panel').forEach(function(p,i){p.classList.toggle('active',i===idx);});
+        }
+        function markdownToHtml(md) {
+            if (!md) return '<em>No output</em>';
+            return md.replace(/### (.*?)$/gm,'<h3>$1</h3>').replace(/## (.*?)$/gm,'<h2>$1</h2>').replace(/# (.*?)$/gm,'<h1>$1</h1>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>');
+        }
+        document.getElementById('topic').addEventListener('keydown', function(e){ if(e.key==='Enter') runCrew(); });
+    </script>
+</body>
+</html>
